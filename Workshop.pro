@@ -18,14 +18,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     main.cpp \
     workshopwidget.cpp \
-    database.cpp \
-    datamodel.cpp
+    database.cpp
 
 HEADERS += \
     datastruct.h \
     workshopwidget.h \
-    database.h \
-    datamodel.h
+    database.h
 
 FORMS += \
     workshopwidget.ui

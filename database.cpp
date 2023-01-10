@@ -5,20 +5,35 @@
 #include <QDebug>
 #include <QCoreApplication>
 
-DataBase::DataBase(const QString& dbName, const QString& tableName, QObject *parent)
+//DataBase::DataBase(const QString& dbName, const QString& tableName, QObject *parent)
+DataBase::DataBase(QObject *parent)
     : QObject(parent)
 {
-    if (QSqlDatabase::contains(dbName)) {
-        m_DataBase = QSqlDatabase::database(dbName);
-//        qDebug() << "构造初始化contains: " << dbName;
+//    if (QSqlDatabase::contains(dbName)) {
+//        m_DataBase = QSqlDatabase::database(dbName);
+////        qDebug() << "构造初始化contains: " << dbName;
+//    }
+//    else {
+//        m_DataBase = QSqlDatabase::addDatabase("QSQLITE", QString(dbName));
+//        m_DataBase.setDatabaseName(dbName);
+////        qDebug() << "构造初始化not contains: " << dbName;
+//    }
+//    m_tableName = tableName;
+//    initTable(tableName);
+
+    QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
+    db.setHostName("127.0.0.1");
+    db.setPort(3306);
+    db.setDatabaseName("test");
+    db.setUserName("root");
+    db.setPassword("hjq123456789");
+    bool ok = db.open();
+    if (ok){
+        qDebug()<<"open database success";
     }
     else {
-        m_DataBase = QSqlDatabase::addDatabase("QSQLITE", QString(dbName));
-        m_DataBase.setDatabaseName(dbName);
-//        qDebug() << "构造初始化not contains: " << dbName;
+        qDebug()<<"error open database because"<<db.lastError().text();
     }
-    m_tableName = tableName;
-    initTable(tableName);
 }
 
 DataBase::~DataBase()
@@ -33,14 +48,13 @@ bool DataBase::insertData(int row, MachineData *data)
     }
     QSqlQuery query(m_DataBase);
 
-    auto strSql = QString("INSERT INTO %1 (row,Id,craft,current,ctatus,pts,ts) "
-                          "VALUES (%2, '%3', '%4', '%5', '%6', '%7', '%8')")
+    auto strSql = QString("INSERT INTO %1 (row,equipment,craft,current,pts,ts) "
+                          "VALUES (%2, '%3', '%4', '%5', '%6', '%7')")
                   .arg(m_tableName)
                   .arg(row)
-                  .arg(data->strId)
+                  .arg(data->strEquipment)
                   .arg(data->strCraft)
                   .arg(data->fCurrent)
-                  .arg(data->nStatus)
                   .arg(data->strPts)
                   .arg(data->strTs);
     bool success = query.exec(strSql);
@@ -88,30 +102,31 @@ bool DataBase::deleteData(int row)
     return true;
 }
 
-bool DataBase::getDataList(QList<MachineData *> &list)
+bool DataBase::getDataList(QList<MachineData *> &list, int quaryType)
 {
     if (!m_DataBase.open()) {
         return false;
     }
 
     QSqlQuery query(m_DataBase);
-    query.prepare(QString("SELECT * FROM %1").arg(m_tableName));
+    if (quaryType)
+        query.prepare(QString("SELECT * FROM %1 where time == pts").arg(m_tableName));
+    else
+        query.prepare(QString("SELECT * FROM %1 where time == pts").arg(m_tableName));
     query.exec();
 //    qDebug() << m_DataBase << query.size();
     while (query.next())
     {
         MachineData* data = new MachineData;
-        data->strId = query.value(2).toString();
+        data->strEquipment = query.value(2).toString();
         data->strCraft = query.value(3).toString();
         data->fCurrent = query.value(4).toFloat();
-        data->nStatus = query.value(5).toInt();
         data->strPts = query.value(6).toString();
         data->strTs = query.value(7).toString();
         list.append(data);
 
-        qDebug()<<"id:"<<data->strId<<",craft:"<<data->strCraft<<",current:"
-               <<data->fCurrent<<",status:"<<data->nStatus<<",pts:"
-              <<data->strPts<<",ts:"<<data->strTs;
+        qDebug()<<"equipment:"<<data->strEquipment<<",craft:"<<data->strCraft<<",current:"
+               <<data->fCurrent<<",pts:"<<data->strPts<<",ts:"<<data->strTs;
     }
     return true;
 }
@@ -123,13 +138,12 @@ bool DataBase::update(int row, MachineData* pData)
     }
 
     QSqlQuery query(m_DataBase);
-    QString strSql = QString("UPDATE %1 SET Id='%2',craft='%3',current='%4',"
-                             "status='%5',pts='%6',ts='%7' WHERE row=%8")
+    QString strSql = QString("UPDATE %1 SET equipment='%2',craft='%3',current='%4',"
+                             "pts='%6',ts='%7' WHERE row=%8")
             .arg(m_tableName)
-            .arg(pData->strId)
+            .arg(pData->strEquipment)
             .arg(pData->strCraft)
             .arg(pData->fCurrent)
-            .arg(pData->nStatus)
             .arg(pData->strPts)
             .arg(pData->strTs)
             .arg(row);
@@ -194,12 +208,11 @@ bool DataBase::createTable(const QString& tableName)
     bool success = query.exec(QString("CREATE TABLE %1 ("
                               "id INTEGER PRIMARY KEY AUTOINCREMENT, "
                               "row INTEGER NOT NULL,"
-                              "Id VARCHAR(40) NOT NULL, "
-                              "craft VARCHAR(40) NOT NULL, "
-                              "current FLOAT NOT NULL,"
-                              "status INTEGER NOT NULL,"
-                              "pts VARCHAR(10) NOT NULL,"
-                              "ts VARCHAR(10))").arg(tableName));
+                              "equipment VARCHAR(255) NOT NULL COMMENT'设备', "
+                              "craft VARCHAR(255) NOT NULL COMMENT'加工工艺', "
+                              "current FLOAT DEFAULT '0.0' COMMENT'电流',"
+                              "pts DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT'开始时间',"
+                              "ts DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT'结束时间')").arg(tableName));
     qDebug() << m_DataBase << " success";
 
     if (success) {

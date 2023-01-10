@@ -4,7 +4,8 @@
 #include <QWidget>
 #include <QtCharts/QChartView>
 #include <QtCharts/QLineSeries>
-#include "datamodel.h"
+#include "datastruct.h"
+#include "database.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class workshopWidget; }
@@ -24,6 +25,11 @@ public:
     void InitFunc();
 
     /**
+     * @brief InitDataBase 初始化数据库
+     */
+    void InitDataBase();
+
+    /**
      * @brief DrawPoints 绘制电流图
      */
     void DrawPoints();
@@ -41,5 +47,8 @@ private slots:
 
 private:
     Ui::workshopWidget *ui;
+
+    std::vector<MachineData> m_data;
+    DataBase* m_db;
 };
 #endif // WORKSHOPWIDGET_H

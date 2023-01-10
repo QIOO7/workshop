@@ -20,8 +20,10 @@ workshopWidget::~workshopWidget()
 
 void workshopWidget::InitFunc()
 {
-    connect(ui->queryShow, &QPushButton::clicked, this, &workshopWidget::quaryStatistics);
+    connect(ui->queryShow, &QPushButton::clicked, this, &workshopWidget::quaryCurrent);
     connect(ui->queryCount, &QPushButton::clicked, this, &workshopWidget::quaryStatistics);
+
+    m_db = new DataBase();
 }
 
 void workshopWidget::DrawPoints()
@@ -33,6 +35,10 @@ void workshopWidget::DrawPoints()
     series->append(7, 4);
     series->append(10, 5);
     *series << QPointF(11, 1) << QPointF(13, 3) << QPointF(17, 6) << QPointF(18, 3) << QPointF(20, 2);
+
+//    for (auto node: m_data) {
+//        series->append(node.strTime.toInt(), node.fCurrent);
+//    }
 
     QChart *chart = new QChart();
     chart->legend()->hide();
@@ -46,11 +52,34 @@ void workshopWidget::DrawPoints()
 
 void workshopWidget::quaryCurrent()
 {
+//    MachineData* tempData;
+//    QList<MachineData *> list;
+//    m_db->getDataList(list, 0);
+//    while (1){
+//        // 查询
+//        tempData->strTime = QString("20221030 6:00");
+//        tempData->fCurrent = 0.0;
 
+//        m_data.push_back(*tempData);
+//    }
 }
 
 void workshopWidget::quaryStatistics()
 {
+//    MachineData* tempData;
+//    QList<MachineData *> list;
+//    m_db->getDataList(list, 1);
+//    while (1){
+//        // 查询
+//        tempData->strTime = QString("20221030 6:00");
+//        tempData->fCurrent = 0.0;
 
+//        if (tempData->fCurrent < XXXX)
+//            tempData->nStatus = 0;
+
+//        m_data.push_back(*tempData);
+//    }
+
+//    ui->close->setText(QString::number(tempData->strTime.toInt()));
 }
 
