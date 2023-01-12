@@ -13,8 +13,8 @@ class DataBase : public QObject
     Q_OBJECT
 
 public:
-//    DataBase(const QString& dbName, const QString& tableName, QObject *parent = Q_NULLPTR);
-    DataBase(QObject *parent = Q_NULLPTR);
+    DataBase(const QString& dbName, const QString& tableName, QObject *parent = Q_NULLPTR);
+//    DataBase(QObject *parent = Q_NULLPTR);
     ~DataBase();
 public:
     // 插入数据，用行号做索引
@@ -22,7 +22,7 @@ public:
     // 删除某行数据
     bool deleteData(int nCanId);
     // 获取数据
-    bool getDataList(QList<MachineData*>& list, int quaryType = 0);
+    bool getDataList(QList<MachineData *> &list,const QString &device, const QString &startTime, const QString &endTime);
     // 更新数据
     bool update(int row, MachineData* pData);
 

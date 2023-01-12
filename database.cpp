@@ -5,35 +5,31 @@
 #include <QDebug>
 #include <QCoreApplication>
 
-//DataBase::DataBase(const QString& dbName, const QString& tableName, QObject *parent)
-DataBase::DataBase(QObject *parent)
-    : QObject(parent)
+DataBase::DataBase(const QString& dbName, const QString& tableName, QObject *parent)
 {
-//    if (QSqlDatabase::contains(dbName)) {
-//        m_DataBase = QSqlDatabase::database(dbName);
-////        qDebug() << "构造初始化contains: " << dbName;
-//    }
-//    else {
-//        m_DataBase = QSqlDatabase::addDatabase("QSQLITE", QString(dbName));
-//        m_DataBase.setDatabaseName(dbName);
-////        qDebug() << "构造初始化not contains: " << dbName;
-//    }
-//    m_tableName = tableName;
-//    initTable(tableName);
-
-    QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
-    db.setHostName("127.0.0.1");
-    db.setPort(3306);
-    db.setDatabaseName("test");
-    db.setUserName("root");
-    db.setPassword("hjq123456789");
-    bool ok = db.open();
+    if (QSqlDatabase::contains(dbName)) {
+        m_DataBase = QSqlDatabase::database(dbName);
+//        qDebug() << "构造初始化contains: " << dbName;
+    }
+    else {
+        m_DataBase = QSqlDatabase::addDatabase("QMYSQL", QString(dbName));
+        m_DataBase.setDatabaseName(dbName);
+//        qDebug() << "构造初始化not contains: " << dbName;
+    }
+    m_DataBase.setHostName("127.0.0.1");
+    m_DataBase.setPort(3306);
+    m_DataBase.setUserName("root");
+    m_DataBase.setPassword("123456");
+    bool ok = m_DataBase.open();
     if (ok){
         qDebug()<<"open database success";
     }
     else {
-        qDebug()<<"error open database because"<<db.lastError().text();
+       // qDebug()<<"error open database because"<<m_db.lastError().text();
     }
+    
+    m_tableName = tableName;
+    initTable(tableName);
 }
 
 DataBase::~DataBase()
@@ -102,27 +98,26 @@ bool DataBase::deleteData(int row)
     return true;
 }
 
-bool DataBase::getDataList(QList<MachineData *> &list, int quaryType)
+bool DataBase::getDataList(QList<MachineData *> &list,const QString &device, const QString &startTime, const QString &endTime)
 {
     if (!m_DataBase.open()) {
         return false;
     }
 
     QSqlQuery query(m_DataBase);
-    if (quaryType)
-        query.prepare(QString("SELECT * FROM %1 where time == pts").arg(m_tableName));
-    else
-        query.prepare(QString("SELECT * FROM %1 where time == pts").arg(m_tableName));
+    query.prepare(QString("SELECT * FROM %1 WHERE starting_time >= '%2' AND end_time <= '%3' AND device_no = '%4'").arg(m_tableName).arg(startTime).arg(endTime).arg(device));
+
+
     query.exec();
 //    qDebug() << m_DataBase << query.size();
     while (query.next())
     {
         MachineData* data = new MachineData;
         data->strEquipment = query.value(2).toString();
-        data->strCraft = query.value(3).toString();
-        data->fCurrent = query.value(4).toFloat();
-        data->strPts = query.value(6).toString();
-        data->strTs = query.value(7).toString();
+        data->strCraft = query.value(1).toString();
+        data->fCurrent = query.value(3).toFloat();
+        data->strPts = query.value(4).toString();
+        data->strTs = query.value(5).toString();
         list.append(data);
 
         qDebug()<<"equipment:"<<data->strEquipment<<",craft:"<<data->strCraft<<",current:"

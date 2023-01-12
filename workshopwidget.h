@@ -48,7 +48,10 @@ private slots:
 private:
     Ui::workshopWidget *ui;
 
-    std::vector<MachineData> m_data;
+    QMap<QString, QVector<double>> m_threshold;
+
     DataBase* m_db;
+    QList<MachineData*> m_showData;
+    QList<MachineData*> m_countData;
 };
 #endif // WORKSHOPWIDGET_H
