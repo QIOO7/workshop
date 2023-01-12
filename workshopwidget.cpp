@@ -2,7 +2,6 @@
 #include "ui_workshopwidget.h"
 
 #include <QDateTime>
-#include <QDebug>
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -36,14 +35,26 @@ void workshopWidget::InitFunc()
     chartView->setRenderHint(QPainter::Antialiasing);
     ui->showTab->layout()->addWidget(chartView);
 
+    // 设定默认值
+    ui->idShow->setText("034-389");
+    ui->ptsShow->setText("2022-06-13 20:55:54");
+    ui->tsShow->setText("2022-06-13 20:58:40");
+    ui->idCount->setText("034-389");
+    ui->ptsCount->setText("2022-06-13 20:55:54");
+    ui->tsCount->setText("2022-06-13 20:58:40");
+
+    //    ui->idCount->setText("125-61");
+    //    ui->ptsCount->setText("2022-05-01 23:59:08");
+    //    ui->tsCount->setText("2022-05-02 00:03:40");
+
     // 初始化数据库
     m_db = new DataBase("test", "process_data");
 
     // 初始化阈值
-    QVector<QVector<double>> threshold ={{0.10, 1.00, 4, 4}, {0.00, 0.10, 4, 4}, {0.00, 4.00, 4, 4},
-                                     {1.00, 3.80, 4, 4}, {0.26, 0.50, 4, 4}, {0.0, 14.0, 4, 4},
-                                     {1.00, 20.00, 4, 4}, {1.90, 22.0, 4, 4}, {0.10, 0.40, 4, 4},
-                                     {0.44, 2.40, 4, 4}, {1.10, 3.00, 4, 4}, {1.76, 4.00, 4, 4}};
+    QVector<QVector<double>> threshold ={{0.10, 1.00, 0, 4}, {0.00, 0.10, 0, 10}, {0.00, 4.00, 0, 4},
+                                     {1.00, 3.80, 0, 4}, {0.26, 0.50, 0, 4}, {0.1, 14.0, 0, 4},
+                                     {1.00, 20.00, 0, 4}, {1.90, 22.0, 0, 4}, {0.10, 0.40, 0, 4},
+                                     {0.44, 2.40, 0, 4}, {1.10, 3.00, 0, 4}, {1.76, 4.00, 0, 4}};
     m_threshold.insert("034-389", threshold[0]);
     m_threshold.insert("125-61", threshold[1]);
     m_threshold.insert("125-67", threshold[2]);
@@ -63,9 +74,11 @@ void workshopWidget::DrawPoints()
     kChart->removeAllSeries();
     QLineSeries *series = new QLineSeries();
     if (!m_showData.empty()) {
-        uint start = QDateTime::fromString(m_showData[0]->strPts, "yyyy-MM-dd hh:mm:ss").toTime_t();
+        m_showData[0]->strPts[10] = ' ';
+        uint start = QDateTime::fromString(m_showData[0]->strPts.mid(0, 19), "yyyy-MM-dd hh:mm:ss").toTime_t();
         for (auto list: m_showData) {
-            QDateTime currentTime = QDateTime::fromString(list->strPts, "yyyy-MM-dd hh:mm:ss");
+            list->strPts[10] = ' ';
+            QDateTime currentTime = QDateTime::fromString(list->strPts.mid(0, 19), "yyyy-MM-dd hh:mm:ss");
             series->append(currentTime.toTime_t() - start, list->fCurrent);
         }
     }
@@ -83,14 +96,18 @@ void workshopWidget::quaryCurrent()
 void workshopWidget::quaryStatistics()
 {
     m_countData.clear();
-    m_db->getDataList(m_countData, ui->idShow->text(), ui->ptsShow->text(), ui->tsShow->text());
+    m_db->getDataList(m_countData, ui->idCount->text(), ui->ptsCount->text(), ui->tsCount->text());
 
     int workTime = 0, idleTime = 0, shutdownTime = 0;
     int produce_num = 0, preStatus = -1;
 
+    int prePoints = 0;
     for (auto list : m_countData) {
-        QDateTime endTime = QDateTime::fromString(list->strTs, "yyyy-MM-dd hh:mm:ss");
-        QDateTime startTime = QDateTime::fromString(list->strPts, "yyyy-MM-dd hh:mm:ss");
+        list->strTs[10] = ' ';
+        list->strPts[10] = ' ';
+        QDateTime endTime = QDateTime::fromString(list->strTs.mid(0, 19), "yyyy-MM-dd hh:mm:ss");
+        QDateTime startTime = QDateTime::fromString(list->strPts.mid(0, 19), "yyyy-MM-dd hh:mm:ss");
+
         int time = endTime.toTime_t() - startTime.toTime_t();  // endtime - startTime
         double i = list->fCurrent;  // 电流
 
@@ -105,35 +122,31 @@ void workshopWidget::quaryStatistics()
             preStatus = 2;
             // 工作
             workTime += time;
-            status[2] = status[3];
+            prePoints = status[3];
         }else if (i > status[0]) {
-            if (status[2]) {
-                preStatus = 2;
+            if (prePoints) {
                 // 工作
                 workTime += time;
                 status[2]--;
             }else {
-                preStatus = 1;
                 // 空闲
                 idleTime += time;
             }
+            preStatus = 1;
         }else {
-            if (status[2]) {
-                preStatus = 2;
+            if (prePoints) {
                 // 工作
                 workTime += time;
                 status[2]--;
             }else {
-                preStatus = 0;
                 // 关机
                 shutdownTime += time;
             }
+            preStatus = 0;
         }
-
-        qDebug() << "查询统计：" << endTime << " " << startTime << " " << workTime << " " << idleTime << " " << shutdownTime;
     }
 
-    ui->counts->setText(QString::number(shutdownTime));
+    ui->counts->setText(QString::number(produce_num));
     ui->close->setText(QString::number(shutdownTime));
     ui->free->setText(QString::number(idleTime));
     ui->working->setText(QString::number(workTime));

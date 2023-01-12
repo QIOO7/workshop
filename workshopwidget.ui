@@ -144,7 +144,7 @@
              <item row="0" column="2">
               <widget class="QLineEdit" name="lineEdit_13">
                <property name="text">
-                <string>结束日期</string>
+                <string>结束时间</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
@@ -177,7 +177,7 @@
              <item row="0" column="1">
               <widget class="QLineEdit" name="lineEdit_11">
                <property name="text">
-                <string>开始日期</string>
+                <string>开始时间</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
@@ -238,6 +238,13 @@
                </widget>
               </item>
               <item>
+               <widget class="QLabel" name="label_10">
+                <property name="text">
+                 <string>个</string>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QLabel" name="label_6">
                 <property name="minimumSize">
                  <size>
@@ -276,24 +283,31 @@
               </item>
               <item>
                <layout class="QGridLayout" name="gridLayout_3">
-                <item row="0" column="0">
-                 <widget class="QLabel" name="label_3">
-                  <property name="text">
-                   <string>关机时间:</string>
+                <item row="1" column="4">
+                 <widget class="QLineEdit" name="working">
+                  <property name="readOnly">
+                   <bool>true</bool>
                   </property>
                  </widget>
                 </item>
-                <item row="0" column="1">
-                 <widget class="QLabel" name="label_4">
+                <item row="1" column="1">
+                 <widget class="QLabel" name="label_7">
                   <property name="text">
-                   <string>空闲时间:</string>
+                   <string>秒  </string>
                   </property>
                  </widget>
                 </item>
-                <item row="0" column="2">
+                <item row="0" column="4">
                  <widget class="QLabel" name="label_5">
                   <property name="text">
                    <string>工作时间:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="3">
+                 <widget class="QLabel" name="label_8">
+                  <property name="text">
+                   <string>秒  </string>
                   </property>
                  </widget>
                 </item>
@@ -304,17 +318,31 @@
                   </property>
                  </widget>
                 </item>
-                <item row="1" column="1">
+                <item row="0" column="2">
+                 <widget class="QLabel" name="label_4">
+                  <property name="text">
+                   <string>空闲时间:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_3">
+                  <property name="text">
+                   <string>关机时间:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="2">
                  <widget class="QLineEdit" name="free">
                   <property name="readOnly">
                    <bool>true</bool>
                   </property>
                  </widget>
                 </item>
-                <item row="1" column="2">
-                 <widget class="QLineEdit" name="working">
-                  <property name="readOnly">
-                   <bool>true</bool>
+                <item row="1" column="5">
+                 <widget class="QLabel" name="label_9">
+                  <property name="text">
+                   <string>秒</string>
                   </property>
                  </widget>
                 </item>
