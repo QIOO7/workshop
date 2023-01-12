@@ -2,8 +2,11 @@
 #include "ui_workshopwidget.h"
 
 #include <QDateTime>
+#include <QDebug>
 
 QT_CHARTS_USE_NAMESPACE
+
+QChart *kChart;
 
 workshopWidget::workshopWidget(QWidget *parent)
     : QWidget(parent)
@@ -25,6 +28,14 @@ void workshopWidget::InitFunc()
     connect(ui->queryShow, &QPushButton::clicked, this, &workshopWidget::quaryCurrent);
     connect(ui->queryCount, &QPushButton::clicked, this, &workshopWidget::quaryStatistics);
 
+    // 初始化折线图
+    kChart = new QChart();
+    kChart->legend()->hide();
+    kChart->createDefaultAxes();
+    QChartView *chartView = new QChartView(kChart);
+    chartView->setRenderHint(QPainter::Antialiasing);
+    ui->showTab->layout()->addWidget(chartView);
+
     // 初始化数据库
     m_db = new DataBase("test", "process_data");
 
@@ -33,7 +44,7 @@ void workshopWidget::InitFunc()
                                      {1.00, 3.80, 4, 4}, {0.26, 0.50, 4, 4}, {0.0, 14.0, 4, 4},
                                      {1.00, 20.00, 4, 4}, {1.90, 22.0, 4, 4}, {0.10, 0.40, 4, 4},
                                      {0.44, 2.40, 4, 4}, {1.10, 3.00, 4, 4}, {1.76, 4.00, 4, 4}};
-    m_threshold.insert("034-189", threshold[0]);
+    m_threshold.insert("034-389", threshold[0]);
     m_threshold.insert("125-61", threshold[1]);
     m_threshold.insert("125-67", threshold[2]);
     m_threshold.insert("K2-5-5", threshold[3]);
@@ -49,6 +60,7 @@ void workshopWidget::InitFunc()
 
 void workshopWidget::DrawPoints()
 {
+    kChart->removeAllSeries();
     QLineSeries *series = new QLineSeries();
     if (!m_showData.empty()) {
         uint start = QDateTime::fromString(m_showData[0]->strPts, "yyyy-MM-dd hh:mm:ss").toTime_t();
@@ -57,15 +69,7 @@ void workshopWidget::DrawPoints()
             series->append(currentTime.toTime_t() - start, list->fCurrent);
         }
     }
-
-    QChart *chart = new QChart();
-    chart->legend()->hide();
-    chart->addSeries(series);
-    chart->createDefaultAxes();
-
-    QChartView *chartView = new QChartView(chart);
-    chartView->setRenderHint(QPainter::Antialiasing);
-    ui->showTab->layout()->addWidget(chartView);
+    kChart->addSeries(series);
 }
 
 void workshopWidget::quaryCurrent()
@@ -85,8 +89,8 @@ void workshopWidget::quaryStatistics()
     int produce_num = 0, preStatus = -1;
 
     for (auto list : m_countData) {
-        QDateTime endTime = QDateTime::fromString(list->strTs, "yyyy-MM-dd");
-        QDateTime startTime = QDateTime::fromString(list->strPts, "yyyy-MM-dd");
+        QDateTime endTime = QDateTime::fromString(list->strTs, "yyyy-MM-dd hh:mm:ss");
+        QDateTime startTime = QDateTime::fromString(list->strPts, "yyyy-MM-dd hh:mm:ss");
         int time = endTime.toTime_t() - startTime.toTime_t();  // endtime - startTime
         double i = list->fCurrent;  // 电流
 
@@ -125,6 +129,8 @@ void workshopWidget::quaryStatistics()
                 shutdownTime += time;
             }
         }
+
+        qDebug() << "查询统计：" << endTime << " " << startTime << " " << workTime << " " << idleTime << " " << shutdownTime;
     }
 
     ui->counts->setText(QString::number(shutdownTime));
